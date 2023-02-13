@@ -1,5 +1,26 @@
-FROM blacklabelops/alpine:3.8
-MAINTAINER Steffen Bleul <sbl@blacklabelops.com>
+FROM  golang:alpine AS builder
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
+RUN apk add bash curl
+RUN mkdir /build
+WORKDIR /build
+
+RUN curl -LJO https://github.com/michaloo/go-cron/archive/refs/heads/master.tar.gz
+RUN tar --strip-components=1  -xzvf go-cron-master.tar.gz go-cron-master
+
+RUN go mod init github.com/toni/whatever \
+    && go get \
+    && rm -rf dist \
+    && mkdir -p dist \
+    && cd ./dist \
+    && go build -o go-cron ../go-cron.go
+
+
+FROM alpine:3.17
+COPY --from=builder /build/dist/go-cron /usr/bin
+
+MAINTAINER Toni Röyhy <toni@montel.fi>
 
 # logrotate version (e.g. 3.9.1-r0)
 ARG LOGROTATE_VERSION=latest
@@ -16,14 +37,14 @@ RUN export CONTAINER_USER=logrotate && \
       tar \
       gzip \
       wget \
+      tini \
+      bash \
       tzdata && \
     if  [ "${LOGROTATE_VERSION}" = "latest" ]; \
       then apk add logrotate ; \
       else apk add "logrotate=${LOGROTATE_VERSION}" ; \
     fi && \
     mkdir -p /usr/bin/logrotate.d && \
-    wget --no-check-certificate -O /tmp/go-cron.tar.gz https://github.com/michaloo/go-cron/releases/download/v0.0.2/go-cron.tar.gz && \
-    tar xvf /tmp/go-cron.tar.gz -C /usr/bin && \
     apk del \
       wget && \
     rm -rf /var/cache/apk/* && rm -rf /tmp/*
