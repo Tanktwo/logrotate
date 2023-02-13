@@ -26,11 +26,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build_matrix:
-    strategy:
-      matrix:
-        platforms: [ arm64 , amd64 ]
-
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -63,7 +58,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          platforms: ${{ matrix.platforms }}
+          platforms: linux/amd64,linux/arm/v7
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
