@@ -11,6 +11,11 @@ backup volumes.
 
 Build ARM64 / AMD64 versions of docker images in github pipeline. 
 
+copy image to gitlab registry:
+
+    skopeo copy --all  docker://ghcr.io/tanktwo/logrotate:main  docker://registry.gitlab.com/tank2/tanktwo/blackbox/logrotate:main
+
+
 ## Supported tags and respective Dockerfile links
 
 | Distribution | Version      | Tag          | Dockerfile |
